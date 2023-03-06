@@ -16,6 +16,7 @@ import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:intl/intl.dart';
 import 'package:date_format/date_format.dart';
+import 'package:isoweek/isoweek.dart';
 
 
 class fireinfo extends StatefulWidget {
@@ -134,6 +135,9 @@ class _fireinfoState extends State<fireinfo> with TickerProviderStateMixin {
   // Current Date code
   var todaysDate = new Map();
   var previousDate = new Map();
+  var previousDateToDisplayHeading = new Map();
+  String firstDayOfCurrentWeek="";
+  String lastDayOfCurrentWeek="";
   String current_week="";
 
   Future<void> getDate() async {
@@ -167,38 +171,66 @@ class _fireinfoState extends State<fireinfo> with TickerProviderStateMixin {
 
 
   DateTime today = DateTime.parse(_myTime.toString());
-  List months = ['jan', 'feb', 'mar', 'apr', 'may','jun','jul','aug','sep','oct','nov','dec'];
+  List months = ['Jan', 'Feb', 'Mar', 'Apr', 'May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   for(int i=1;i<8;i++)
   {
-    Map tempMap = new Map();
+    Map tempMap1 = new Map();
+    Map tempMap2 = new Map();
     DateTime temp = today.subtract(Duration(days:i));
 
     // Month
     String current_month = temp.month.toString();
     if(current_month.length==1)
       current_month = '0'+current_month;
-    tempMap["month"] = current_month;
+    tempMap1["month"] = current_month;
+    tempMap2["month"] = current_month;
     
     // Year
     String current_year = temp.year.toString();
     // Date
     String current_date = temp.day.toString();
+    if(current_date.length==1)
+      current_date = '0'+current_date;
 
-    tempMap["date"]=current_date;
-    tempMap["month"]=current_month;
-    tempMap["year"]=current_year;
-    previousDate[i.toString()] = tempMap;
+    tempMap1["date"]=current_date;
+    tempMap1["month"]=current_month;
+    tempMap1["year"]=current_year;
+    tempMap2["date"]=current_date;
+    tempMap2["month"]=months[int.parse(current_month)-1];
+    tempMap2["year"]=current_year;
+    previousDate[i.toString()] = tempMap1;
+    previousDateToDisplayHeading[i.toString()] = tempMap2;
   }
 
   // Calculate Weeks
-  DateTime from = DateTime.utc(int.parse(todaysDate["year"]), 1, 1);
-  DateTime to = DateTime.utc(int.parse(todaysDate["year"]), int.parse(todaysDate["month"]), int.parse(todaysDate["date"]));
-  // DateTime to = DateTime.utc(2023, 1, 7);
-  int weeks=((to.difference(from).inDays+1) / 7).ceil();
+  // DateTime from = DateTime.utc(int.parse(todaysDate["year"]), 1, 1);
+  // DateTime to = DateTime.utc(int.parse(todaysDate["year"]), int.parse(todaysDate["month"]), int.parse(todaysDate["date"]));
+  // // DateTime to = DateTime.utc(2023, 1, 7);
+  // int weeks=((to.difference(from).inDays+1) / 7).ceil();
+  // current_week = weeks.toString();
+  // if(current_week.length==1)
+  //   current_week = '0'+weeks.toString();
 
-  current_week = weeks.toString();
+  // Week weekNo = Week.fromDate(DateTime(2023, 2, 28));
+  Week weekNo = Week.fromDate(DateTime(int.parse(todaysDate["year"]), int.parse(todaysDate["month"]), int.parse(todaysDate["date"])));
+
+  current_week = weekNo.weekNumber.toString();
   if(current_week.length==1)
-    current_week = '0'+weeks.toString();
+    current_week = '0'+current_week;
+
+  // // Calculate current week - starting and ending date
+  String yearWeek = todaysDate["year"]+'W'+current_week;
+  Week weekFromIso = Week.fromISOString(yearWeek);
+
+  String firstDayDate = weekFromIso.day(0).day.toString();
+  String firstDayMonth = weekFromIso.day(0).month.toString();
+  String firstDayYear = weekFromIso.day(0).year.toString();
+  String lastDayDate = weekFromIso.day(6).day.toString();
+  String lastDayMonth = weekFromIso.day(6).month.toString();
+  String lastDayYear = weekFromIso.day(6).year.toString();
+  firstDayOfCurrentWeek = firstDayDate+" "+months[int.parse(firstDayMonth)-1]+" "+firstDayYear;
+  lastDayOfCurrentWeek = lastDayDate+" "+months[int.parse(lastDayMonth)-1]+" "+lastDayYear;
+
   }
 
 
@@ -342,7 +374,7 @@ class _fireinfoState extends State<fireinfo> with TickerProviderStateMixin {
                                       children: [
                                         Container(
                                           child: Text(
-                                              previousDate["7"]["date"]+"-"+previousDate["7"]["month"]+"-"+previousDate["7"]["year"],
+                                              previousDateToDisplayHeading["7"]["date"]+" "+previousDateToDisplayHeading["7"]["month"]+" "+previousDateToDisplayHeading["7"]["year"],
                                               style: TextStyle(
                                                   color: Colors.white,
                                                   fontSize: 20)),
@@ -366,7 +398,7 @@ class _fireinfoState extends State<fireinfo> with TickerProviderStateMixin {
                                       children: [
                                         Container(
                                           child: Text(
-                                              previousDate["6"]["date"]+"-"+previousDate["6"]["month"]+"-"+previousDate["6"]["year"],
+                                              previousDateToDisplayHeading["6"]["date"]+" "+previousDateToDisplayHeading["6"]["month"]+" "+previousDateToDisplayHeading["6"]["year"],
                                               style: TextStyle(
                                                   color: Colors.white,
                                                   fontSize: 20)),
@@ -390,7 +422,7 @@ class _fireinfoState extends State<fireinfo> with TickerProviderStateMixin {
                                       children: [
                                         Container(
                                           child: Text(
-                                              previousDate["5"]["date"]+"-"+previousDate["5"]["month"]+"-"+previousDate["5"]["year"],
+                                              previousDateToDisplayHeading["5"]["date"]+" "+previousDateToDisplayHeading["5"]["month"]+" "+previousDateToDisplayHeading["5"]["year"],
                                               style: TextStyle(
                                                   color: Colors.white,
                                                   fontSize: 20)),
@@ -414,7 +446,7 @@ class _fireinfoState extends State<fireinfo> with TickerProviderStateMixin {
                                       children: [
                                         Container(
                                           child: Text(
-                                              previousDate["4"]["date"]+"-"+previousDate["4"]["month"]+"-"+previousDate["4"]["year"],
+                                              previousDateToDisplayHeading["4"]["date"]+" "+previousDateToDisplayHeading["4"]["month"]+" "+previousDateToDisplayHeading["4"]["year"],
                                               style: TextStyle(
                                                   color: Colors.white,
                                                   fontSize: 20)),
@@ -438,7 +470,7 @@ class _fireinfoState extends State<fireinfo> with TickerProviderStateMixin {
                                       children: [
                                         Container(
                                           child: Text(
-                                              previousDate["3"]["date"]+"-"+previousDate["3"]["month"]+"-"+previousDate["3"]["year"],
+                                              previousDateToDisplayHeading["3"]["date"]+" "+previousDateToDisplayHeading["3"]["month"]+" "+previousDateToDisplayHeading["3"]["year"],
                                               style: TextStyle(
                                                   color: Colors.white,
                                                   fontSize: 20)),
@@ -463,7 +495,7 @@ class _fireinfoState extends State<fireinfo> with TickerProviderStateMixin {
                                         
                                         Container(
                                           child: Text(
-                                              previousDate["2"]["date"]+"-"+previousDate["2"]["month"]+"-"+previousDate["2"]["year"],
+                                              previousDateToDisplayHeading["2"]["date"]+" "+previousDateToDisplayHeading["2"]["month"]+" "+previousDateToDisplayHeading["2"]["year"],
                                               style: TextStyle(
                                                   color: Colors.white,
                                                   fontSize: 20)),
@@ -486,7 +518,7 @@ class _fireinfoState extends State<fireinfo> with TickerProviderStateMixin {
                                     Column(
                                       children: [
                                         Container(
-                                          child: Text(previousDate["1"]["date"]+"-"+previousDate["1"]["month"]+"-"+previousDate["1"]["year"],
+                                          child: Text(previousDateToDisplayHeading["1"]["date"]+" "+previousDateToDisplayHeading["1"]["month"]+" "+previousDateToDisplayHeading["1"]["year"],
                                               style: TextStyle(
                                                   color: Colors.white,
                                                   fontSize: 20)),
@@ -533,19 +565,30 @@ class _fireinfoState extends State<fireinfo> with TickerProviderStateMixin {
                                     Column(
                                       children: [
                                         Container(
-                                          child: Text("Weekly",
+                                          child: Column(
+                                            children: [
+                                              Text("Weekly",
                                               style: TextStyle(
                                                   color: Colors.white,
                                                   fontSize: 20)),
+                                              Text(firstDayOfCurrentWeek+" - "+lastDayOfCurrentWeek, 
+                                                  style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 16)),
+                                            ],
+                                          ), 
+                                          
+                                          
                                         ),
                                         Expanded(
                                           child: SingleChildScrollView(
                                               child: Container(
                                             margin: const EdgeInsets.fromLTRB(
                                                 10, 10, 10, 10),
-                                            child: Text(list[2][todaysDate["year"]]==null || list[2][todaysDate["year"]][current_week]==null || list[2][todaysDate["year"]
+                                            child: 
+                                            Text(list[2][todaysDate["year"]]==null || list[2][todaysDate["year"]][current_week]==null || list[2][todaysDate["year"]
                                             ][current_week][whichh.toLowerCase()]==null ? 
-                                            "No Data to Show" : list[2][todaysDate["year"]][current_week][whichh.toLowerCase()].toString(),
+                                            "No Data" : list[2][todaysDate["year"]][current_week][whichh.toLowerCase()].toString(),
                                                 textAlign: TextAlign.justify,
                                                 style: TextStyle(
                                                     color: Colors.white,
